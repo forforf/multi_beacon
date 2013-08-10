@@ -1,0 +1,105 @@
+dim cmd_counter
+dim rx_counter
+dim string(5)
+dim is_on
+dim data( 30 )
+
+event system_boot( major, minor, patch, build, ll_version, protocol_version, hw )
+
+	# Set advertisement interval to 100 to 500ms. Use all advertisement channels
+	call gap_set_adv_parameters( 20, 100, 7 )
+	
+	#set to advertising mode
+	call gap_set_mode( gap_general_discoverable, gap_undirected_connectable )
+	
+	# Initialize iBeacon advertisement data
+	# Flags = LE General Discovery, single mode device (02 01 06)
+	# UUID = 83 25 6b 74 78 d0 43 a4 82 69 05 f9 dc 8a 44 ba
+	# Major = 00 10
+	# Minor = 00 20
+	# Measured power = -58 ($c6)
+
+	# Flags
+	data( 0:1) = $02
+	data( 1:1) = $01
+	data( 2:1) = $06
+	
+	# Manufacturer data
+	data( 3:1) = $1a
+	data( 4:1) = $ff
+	
+	# Preamble
+	data( 5:1) = $4c
+	data( 6:1) = $00
+	data( 7:1) = $02
+	data( 8:1) = $15
+	
+	# UUID
+	data( 9:1) = $83
+	data(10:1) = $25
+	data(11:1) = $6b
+	data(12:1) = $74
+	data(13:1) = $78
+	data(14:1) = $d0
+	data(15:1) = $43
+	data(16:1) = $a4
+	data(17:1) = $82
+	data(18:1) = $69
+	data(19:1) = $05
+	data(20:1) = $f9
+	data(21:1) = $dc
+	data(22:1) = $8a
+	data(23:1) = $44
+	data(24:1) = $ba
+	
+	# Major
+	data(25:1) = $00
+	data(26:1) = $10
+	
+	# Minor
+	data(27:1) = $00
+	data(28:1) = $20
+	
+	# Measures power
+	data(29:1) = $c6
+
+	# Set advertisement data
+	call gap_set_adv_data(0, 30, data(0:30))
+
+	#set bondable mode
+	call sm_set_bondable_mode(1)
+	
+	# Set response attribute to initial value
+	cmd_counter = 0
+	rx_counter = 0
+end
+
+# Attribute changed
+event attributes_value( connection, reason, handle, offset, value_len, value )
+	if handle = xgatt_command then
+		# Echo atribute (i.e. command) to serial
+		call system_endpoint_tx( system_endpoint_uart0, 5, value(0:5) )
+		call system_endpoint_tx( system_endpoint_uart0, 1, "\n" )
+	end if
+end
+
+event connection_status(connection, flags, address, address_type, conn_interval, timeout, latency, bonding)
+	# Connected: send message over USART
+	call system_endpoint_tx( system_endpoint_uart0, 2, "C\n" )
+	
+	cmd_counter = 0
+	rx_counter = 0
+end
+
+# Disconnection event listener
+event connection_disconnected(handle, result)
+	# Disconnected: send message to MCU
+	call system_endpoint_tx( system_endpoint_uart0, 2, "D\n" )
+	
+    call gap_set_mode( gap_general_discoverable, gap_undirected_connectable )
+	call gap_set_adv_parameters( 20, 100, 7 )
+
+	# Reset counters
+	cmd_counter = 0
+	rx_counter = 0
+end
