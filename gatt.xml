@@ -4,14 +4,16 @@
 	<service uuid="1800">
 		<description>Generic Access Profile</description>
 		
+		<!-- Device name -->
 		<characteristic uuid="2a00">
 			<properties read="true" const="true"/>
-			<value>BLEIR Multi-remote</value>
+			<value>iBeacon</value>
 		</characteristic>
 		
+		<!-- Appearance: Generic tag -->
 		<characteristic uuid="2a01">
 			<properties read="true" const="true"/>
-			<value type="hex">4142</value>
+			<value type="hex">0200</value>
 		</characteristic>
 	</service>
 	
@@ -32,34 +34,14 @@
 		
 		<characteristic uuid="2a26">
 			<properties read="true" const="true" />
-			<value>1.1</value>
+			<value>1.0</value>
 			<description>Firmware Revision String</description>
-		</characteristic>
-		
-		<characteristic uuid="2a28">
-			<properties read="true" const="true" />
-			<value>1.1</value>
-			<description>Software Revision String</description>
 		</characteristic>
 		
 		<characteristic uuid="2a27">
 			<properties read="true" const="true" />
-			<value>1.0</value>
+			<value>0.1</value>
 			<description>Hardware Revision String</description>
 		</characteristic>
-	</service>
-	
-	<service uuid="b8b96269-562a-408f-8155-0b45f21c7774" advertise="true">
-			<description>Generic Command and Control Protocol</description>
-			
-			<characteristic uuid="bf33aeaf-8653-4841-89c8-330fa4f13346" id="xgatt_command">
-				<properties write="true" />
-				<value type="hex">0000000000</value>
-			</characteristic>
-			
-			<characteristic uuid="51494780-28c9-4502-87f1-c23881c70300" id="xgatt_response">
-				<properties read="true" notify="true" />
-				<value type="hex">0102030405</value>
-			</characteristic>
 	</service>
 </configuration>
