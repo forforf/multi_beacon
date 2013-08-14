@@ -1,4 +1,7 @@
 dim data( 30 )
+dim result
+dim port
+dim data
 
 event system_boot( major, minor, patch, build, ll_version, protocol_version, hw )
 
@@ -12,7 +15,7 @@ event system_boot( major, minor, patch, build, ll_version, protocol_version, hw 
 	# Flags = LE General Discovery, single mode device (02 01 06)
 	# UUID for Apple's AirLocate = 83 25 6b 74 78 d0 43 a4 82 69 05 f9 dc 8a 44 ba
 	# UUID for JWJ custom app =    1ACBAD6E-E1A5-4838-A62A-22D35D00C35B
-	# Major = 00 01
+	# Major = 00 <value of DIP> defaults to 3F (P0_0 through P0_5 are pulled up)
 	# Minor = 00 01
 	# Measured power = -58 ($c6)
 
@@ -50,22 +53,26 @@ event system_boot( major, minor, patch, build, ll_version, protocol_version, hw 
 	data(23:1) = $c3
 	data(24:1) = $5b
 	
-	# Major
+	# Major – read number from DIP switch attached to pins P0_0 through P0_5
+	# MSB is always 0
 	data(25:1) = $00
-	data(26:1) = $01
+	
+	# Read P0_0 through P0_5 into data
+	call hardware_io_port_read( 0, $3F)(result, port, data)
+	data(26:1) = data
 	
 	# Minor
 	data(27:1) = $00
 	data(28:1) = $01
 	
-	# Measures power
+	# Measured power
 	data(29:1) = $c6
 
 	# Set advertisement data
 	call gap_set_adv_data(0, 30, data(0:30))
 
 	#set bondable mode
-	call sm_set_bondable_mode(1)
+#	call sm_set_bondable_mode(1)
 end
 
 # Disconnection event listener
