@@ -1,7 +1,7 @@
 dim data( 30 )
 dim result
 dim port
-dim data
+dim read_data
 
 event system_boot( major, minor, patch, build, ll_version, protocol_version, hw )
 
@@ -57,9 +57,9 @@ event system_boot( major, minor, patch, build, ll_version, protocol_version, hw 
 	# MSB is always 0
 	data(25:1) = $00
 	
-	# Read P0_0 through P0_5 into data
-	call hardware_io_port_read( 0, $3F)(result, port, data)
-	data(26:1) = data
+	# Read P0_0 through P0_5 into read_data
+	call hardware_io_port_read( 0, $3F)(result, port, read_data)
+	data(26:1) = read_data
 	
 	# Minor
 	data(27:1) = $00
