@@ -4,6 +4,5 @@
     <sleeposc enable="true" ppm="30" />
     <usb enable="false" />
     <txpower power="15" bias="5" />
-	<port index="0" tristatemask="0" pull="up" />
 	<script enable="true" />
 </hardware>

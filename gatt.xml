@@ -22,7 +22,7 @@
 		
 		<characteristic uuid="2a29">
 			<properties read="true" const="true" />
-			<value>Bluegiga/JWJ</value>
+			<value>Bluegiga/DPM</value>
 			<description>Manufacturer Name String</description>
 		</characteristic>
 		
@@ -42,6 +42,12 @@
 			<properties read="true" const="true" />
 			<value>0.1</value>
 			<description>Hardware Revision String</description>
+		</characteristic>
+		
+		<characteristic uuid="2a25" id="xgatt_rot_2a25">
+		<description>Serial Number, but need to change to custom char</description>
+			<properties read="true" />
+			<value type="hex" length="1" />
 		</characteristic>
 	</service>
 </configuration>

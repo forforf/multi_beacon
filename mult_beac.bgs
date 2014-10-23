@@ -1,0 +1,140 @@
+const ADV_HANDLE = 1
+const ADV_MIN = 20
+const ADV_MAX = 100
+const ADV_CHS = 7
+
+dim data( 30 )
+# dim rotate_index(1)
+dim read_data
+
+dim rotate_interval
+dim rotate_mac(1) # true/false
+#dim gap_adv_interval_min(1)
+
+event system_boot( major, minor, patch, build, ll_version, protocol_version, hw )
+
+  # Set rotate constants
+  rotate_interval = 32768 # 1sec=32768
+  rotate_mac(0:1)  = 0 # true/false
+
+  #TODO: ensure rotate interval is greater than advertisement interval max
+
+	# Set advertisement interval min, max in ms, max # channels is 7
+	# gap_set_adv_parameters (min, max, channels)
+	call gap_set_adv_parameters( ADV_MIN, ADV_MAX, ADV_CHS )
+	
+	#set to advertising mode
+	# gap_set_mode(discoverable mode, connectable mode)
+	#   Gap discoverable modes
+	#      0: gap_non_discoverable
+	#      1: gap_limited_discoverable
+	#      2: gap_general_discoverable
+	#      3: gap_broadcast -- same as 0
+	#      4: gap_user_data -- User defined advertisement
+	#      0x80: gap_enhanced_broadcasting -- report back via Scan Response event
+	#   Gap connectable modes
+	#      0: gap_non_connectable
+	#      1: gap_directed_connectable
+	#      2: gap_undirected_connectable
+	#      3: gap_scannable_connectable
+	#      4: gap_user_data -- Same as 2, but uses ADV_SCAN_IND packets
+	
+	call gap_set_mode( gap_general_discoverable, gap_undirected_connectable )
+	
+	# Initialize iBeacon advertisement data
+	# Flags = LE General Discovery, single mode device (02 01 06)
+	# UUID for Apple's AirLocate app = 83256b74-78d0-43a4-8269-05f9dc8a44ba
+	# Radius Networks UUID:  2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6
+	
+	# Flags
+	data( 0:1) = $02
+	data( 1:1) = $01
+	data( 2:1) = $06
+	
+	# Manufacturer data
+	data( 3:1) = $1a
+	data( 4:1) = $ff
+	
+	# Preamble
+	data( 5:1) = $4c
+	data( 6:1) = $00
+	data( 7:1) = $02
+	data( 8:1) = $15
+	
+	# UUID0 Initial UUID
+	# 2F 23 44 54-CF 6D-4A 0F-AD F2-F4 91 1B A9 FF A6
+	data( 9:1) = $2f
+	data(10:1) = $23
+	data(11:1) = $44
+	data(12:1) = $54
+	data(13:1) = $cf
+	data(14:1) = $6d
+	data(15:1) = $4a
+	data(16:1) = $0f
+	data(17:1) = $ad
+	data(18:1) = $f2
+	data(19:1) = $f4
+	data(20:1) = $91
+	data(21:1) = $1b
+	data(22:1) = $a9
+	data(23:1) = $ff
+	data(24:1) = $a6
+	
+	# Major 
+	data(25:1) = $00
+	data(26:1) = $0c
+		
+	# Minor
+	data(27:1) = $00
+	data(28:1) = $0d
+	
+	# Measured power (specified in 2's complement, so 0xC6 is -58)
+	data(29:1) = $c6
+
+	# Set advertisement data
+	# call gap_set_adv_data( set_scanrsp, adv_data_len, adv_data_data )
+	#   set_scanrsp
+	#     0: sets advertisement data
+	#     1: sets scan response data
+	
+	call gap_set_adv_data(0, 30, data(0:30))
+	
+	#rotate_index(0:1) = $0
+	# Timer
+	#call hardware_set_soft_timer(time, handle, single_shot)
+	#  time: 1 = 1/32768 secs
+	#  handle: handle set back in event
+	#  single_shot: 0: repeat, 1: one shot
+	
+	# Timer that repeats once per second
+	call hardware_set_soft_timer(rotate_interval, ADV_HANDLE, 0)
+	
+	#set bondable mode
+  #	call sm_set_bondable_mode(1)
+end
+
+#Timer event listener
+event hardware_soft_timer(handle)
+  if ADV_HANDLE = handle then
+    #Code that you want to execute once per 1s
+  #Write rotate idx to device info
+  #alternate between 0 and 1
+  # rotate_index(0:1) = (rotate_index(0:1) + 1) & 1
+  #rotate through byte
+  #data(28:1) = data(28:1) + 1
+  # if rotate_index(0:1) = $0 then
+  #  data(24:1) = $5b
+  #else
+  #  data(24:1) = $5c
+  #end if
+  #call attributes_write(xgatt_rot_2a25,0,1,data(28:1))
+  #call gap_set_adv_data(0, 30, data(0:30))
+  end if
+end
+
+# Disconnection event listener
+event connection_disconnected(handle, result)
+	# Reset connection parametesr
+  call gap_set_mode( gap_general_discoverable, gap_undirected_connectable )
+	call gap_set_adv_parameters( 20, 100, 7 )
+end
